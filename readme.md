@@ -23,7 +23,7 @@ This repository demonstrates user authentication implementation using both Flask
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Legus-Yeung/flask-fastapi-user-auth.git
 cd flask-fastapi-user-auth
 ```
 
