@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+bcrypt
+python-jose[cryptography]
+pydantic
+flask
+flask-bcrypt
+flask-jwt-extended
+requests
+httpx
+
+# Optional
+python-dotenv
+fastapi[all]
+flask-cors
