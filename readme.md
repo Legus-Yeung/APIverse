@@ -1,119 +1,115 @@
-# Flask/FastAPI User Authentication
+# Flask-FastAPI User Authentication & Banking System
 
-This repository demonstrates user authentication implementation using both Flask and FastAPI frameworks, featuring a simple GUI client to test both servers. The project includes password hashing, JWT token authentication, and a shared user storage system.
-
-## Features
-
-- User registration and login functionality
-- Password hashing using bcrypt
-- JWT token-based authentication
-- Shared JSON file-based user storage
-- GUI client application using Tkinter
-- Support for both Flask and FastAPI backends
+This project provides both Flask and FastAPI implementations of a user authentication system with banking functionality.
 
 ## Project Structure
 
-- `flask_server.py` - Flask implementation of the authentication server
-- `fastapi_server.py` - FastAPI implementation of the authentication server
-- `client.py` - Tkinter-based GUI client that works with both servers
-- `requirements.txt` - Project dependencies
-- `users.json` - JSON file storing user credentials (automatically created)
+```
+flask-fastapi-user-auth/
+├── fastapi_server/
+│   └── server.py          # FastAPI server with full banking functionality
+├── flask_server/
+│   └── server.py          # Flask server with basic authentication
+├── client.py              # GUI client for banking operations
+├── requirements.txt       # Python dependencies
+└── readme.md             # This file
+```
+
+## Features
+
+### Authentication
+- User registration and login
+- JWT token-based authentication
+- Password hashing with bcrypt
+
+### Banking Operations (FastAPI only)
+- **Create Account**: Create a new bank account with initial balance
+- **Deposit**: Add money to your account
+- **Withdraw**: Remove money from your account (with balance validation)
+- **Transfer**: Send money to another account
+- **Close Account**: Close your account (requires zero balance)
+- **Account Info**: View account details and balance
+
+### Security Features
+- Unique account numbers (10-digit UUID-based)
+- Balance validation for withdrawals and transfers
+- Account ownership verification
+- Token expiration handling
 
 ## Installation
 
-1. Clone the repository:
-```bash
-git clone https://github.com/Legus-Yeung/flask-fastapi-user-auth.git
-cd flask-fastapi-user-auth
-```
-
-2. Create a virtual environment (recommended):
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
+1. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Usage
+## Running the Application
 
-### Starting the Servers
-
-You can run either the Flask server or the FastAPI server:
-
-For Flask:
+### FastAPI Server (Recommended)
 ```bash
-python flask_server.py
+cd fastapi_server
+python server.py
 ```
-The Flask server will run on `http://127.0.0.1:5000`
+Server runs on: http://127.0.0.1:5000
 
-For FastAPI:
+### Flask Server (Basic Authentication Only)
 ```bash
-python fastapi_server.py
+cd flask_server
+python server.py
 ```
-The FastAPI server will also run on `http://127.0.0.1:5000`
+Server runs on: http://127.0.0.1:5000 (default Flask port)
 
-### Running the Client
-
-1. Open `client.py` and set the `USING_FASTAPI` variable to `True` for FastAPI server or `False` for Flask server
-2. Run the client:
+### Client Application
 ```bash
 python client.py
 ```
 
 ## API Endpoints
 
-Both servers implement the same endpoints:
+### Authentication Endpoints
+- `POST /register` - Register a new user
+- `POST /login` - Login and get JWT token
+- `GET /protected` - Access protected resource
 
-### 1. Register User
-- **Endpoint:** `/register`
-- **Method:** POST
-- **Body:**
-```json
-{
-    "username": "your_username",
-    "password": "your_password"
-}
-```
+### Banking Endpoints (FastAPI only)
+- `POST /accounts/create` - Create a new account
+- `GET /accounts/my-account` - Get account information
+- `POST /accounts/deposit` - Deposit money
+- `POST /accounts/withdraw` - Withdraw money
+- `POST /accounts/transfer` - Transfer money to another account
+- `POST /accounts/close` - Close account
 
-### 2. Login
-- **Endpoint:** `/login`
-- **Method:** POST
-- **Body:**
-```json
-{
-    "username": "your_username",
-    "password": "your_password"
-}
-```
+## Client Features
 
-### 3. Protected Route
-- **Endpoint:** `/protected`
-- **Method:** GET
-- **Headers:** Authorization: Bearer <token> (FastAPI) or Authorization: <token> (Flask)
+The GUI client provides:
+- User registration and login
+- Account creation with initial balance
+- Deposit and withdrawal operations
+- Money transfers between accounts
+- Account closure
+- Real-time balance updates
+- Error handling and validation
 
-## Security Features
+## Data Storage
 
-- Passwords are hashed using bcrypt before storage
-- JWT tokens expire after 1 hour
-- Protected routes require valid JWT tokens
-- Password verification using secure comparison
+- User data: `users.json`
+- Account data: `accounts.json` (FastAPI only)
 
-## Dependencies
+Both files are created automatically when the servers start.
 
-- FastAPI and Flask for server implementations
-- bcrypt for password hashing
-- JWT for token-based authentication
-- Tkinter for GUI client
-- Requests for HTTP client operations
-- Uvicorn as ASGI server for FastAPI
+## Usage Example
+
+1. Start the FastAPI server
+2. Run the client application
+3. Register a new user or login
+4. Create an account with initial balance
+5. Perform banking operations (deposit, withdraw, transfer)
+6. View account information and balance
 
 ## Notes
 
-- This is a demonstration project and may need additional security measures for production use
-- The `users.json` file is created automatically when first running either server
-- Both servers share the same user database through `users.json`
-- The client can switch between Flask and FastAPI servers by modifying the `USING_FASTAPI` flag
+- Each user can have only one active account
+- Account numbers are unique 10-digit identifiers
+- Transfers require valid recipient account numbers
+- Accounts must have zero balance to be closed
+- JWT tokens expire after 1 hour
