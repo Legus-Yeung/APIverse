@@ -46,7 +46,7 @@ def login():
 
     response = requests.post(f"{BACKEND_URL}/login", json={"username": username, "password": password})
 
-    if response.status_code == 200:
+    if response.status_code in [200, 201]:
         data = response.json()
         token = data.get("token")
         if token:
@@ -61,7 +61,7 @@ def login():
 
 def access_protected():
     response = requests.get(f"{BACKEND_URL}/protected", headers=get_headers())
-    if response.status_code == 200:
+    if response.status_code in [200, 201]:
         data = response.json()
         messagebox.showinfo("Response", data.get("message", "Access granted!"))
     else:
@@ -86,7 +86,7 @@ def create_account():
             headers=get_headers()
         )
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             data = response.json()
             messagebox.showinfo("Success", f"Account created!\nAccount Number: {data['account_number']}\nBalance: ${data['balance']:.2f}")
             create_window.destroy()
@@ -112,7 +112,7 @@ def get_account_info():
     global current_account
     response = requests.get(f"{BACKEND_URL}/accounts/my-account", headers=get_headers())
     
-    if response.status_code == 200:
+    if response.status_code in [200, 201]:
         data = response.json()
         current_account = data['account']
         return current_account
@@ -154,7 +154,7 @@ def deposit():
             headers=get_headers()
         )
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             data = response.json()
             messagebox.showinfo("Success", f"Deposited ${amount:.2f}\nNew Balance: ${data['new_balance']:.2f}")
             deposit_window.destroy()
@@ -192,7 +192,7 @@ def withdraw():
             headers=get_headers()
         )
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             data = response.json()
             messagebox.showinfo("Success", f"Withdrew ${amount:.2f}\nNew Balance: ${data['new_balance']:.2f}")
             withdraw_window.destroy()
@@ -235,7 +235,7 @@ def transfer():
             headers=get_headers()
         )
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             data = response.json()
             messagebox.showinfo("Success", f"Transferred ${amount:.2f} to account {to_account}\nNew Balance: ${data['new_balance']:.2f}")
             transfer_window.destroy()
@@ -264,7 +264,7 @@ def close_account():
     if messagebox.askyesno("Confirm", "Are you sure you want to close your account? This action cannot be undone."):
         response = requests.post(f"{BACKEND_URL}/accounts/close", headers=get_headers())
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             messagebox.showinfo("Success", "Account closed successfully")
             refresh_account_info()
         else:
