@@ -72,6 +72,14 @@ cd java_server
 mvn clean install
 ```
 
+### NestJS Backend
+1. Install Node.js 18 or higher
+2. Navigate to the NestJS server directory:
+```bash
+cd nestjs_server
+npm install
+```
+
 ### Go Backend
 1. Install Go 1.19 or higher
 2. Navigate to the Go server directory:
