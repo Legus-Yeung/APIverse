@@ -3,26 +3,60 @@ from tkinter import messagebox, ttk
 import requests
 
 BACKEND_URL = "http://127.0.0.1:5000"
-USING_FASTAPI = True
 
 token = None
 current_account = None
+server_token_format = None
 
 def get_error_message(response):
-    """Extract error message from either FastAPI or Flask response"""
+    """Extract error message from either FastAPI, Flask, or Java Spring Boot response"""
     try:
         json_response = response.json()
-        if "detail" in json_response:
+        # Java Spring Boot format
+        if "success" in json_response and not json_response["success"]:
+            return json_response.get("message", "An error occurred")
+        # FastAPI format
+        elif "detail" in json_response:
             return json_response["detail"]
+        # Flask format
         elif "message" in json_response:
             return json_response["message"]
         return "An error occurred"
     except:
         return "Unknown error occurred"
 
+def detect_server_token_format():
+    """Detect what token format the server expects by testing both formats"""
+    global server_token_format
+    
+    if not token:
+        return
+    
+    headers_bearer = {"Authorization": f"Bearer {token}"}
+    response_bearer = requests.get(f"{BACKEND_URL}/protected", headers=headers_bearer)
+    
+    if response_bearer.status_code in [200, 201]:
+        server_token_format = "bearer"
+        return
+    
+    headers_direct = {"Authorization": token}
+    response_direct = requests.get(f"{BACKEND_URL}/protected", headers=headers_direct)
+    
+    if response_direct.status_code in [200, 201]:
+        server_token_format = "direct"
+        return
+    
+    server_token_format = "bearer"
+
 def get_headers():
-    """Get headers with authentication token"""
-    if USING_FASTAPI:
+    """Get headers with authentication token - auto-detects server format"""
+    if not token:
+        return {}
+    
+    if server_token_format is None:
+        return {"Authorization": f"Bearer {token}"}
+    
+    if server_token_format == "bearer":
         return {"Authorization": f"Bearer {token}"}
     else:
         return {"Authorization": token}
@@ -48,8 +82,13 @@ def login():
 
     if response.status_code in [200, 201]:
         data = response.json()
-        token = data.get("token")
+        if data.get("success"):
+            token = data.get("data") or data.get("token")
+        else:
+            token = data.get("token")
+        
         if token:
+            detect_server_token_format()
             messagebox.showinfo("Login Success", "Welcome!")
             root.destroy()
             open_main_app()
@@ -88,7 +127,14 @@ def create_account():
         
         if response.status_code in [200, 201]:
             data = response.json()
-            messagebox.showinfo("Success", f"Account created!\nAccount Number: {data['account_number']}\nBalance: ${data['balance']:.2f}")
+            if "success" in data and data["success"] and "data" in data:
+                account_data = data['data']
+                messagebox.showinfo("Success", f"Account created!\nAccount Number: {account_data['account_number']}\nBalance: ${account_data['balance']:.2f}")
+            elif 'data' in data:
+                account_data = data['data']
+                messagebox.showinfo("Success", f"Account created!\nAccount Number: {account_data['account_number']}\nBalance: ${account_data['balance']:.2f}")
+            else:
+                messagebox.showinfo("Success", f"Account created!\nAccount Number: {data.get('account_number', 'N/A')}\nBalance: ${data.get('balance', 0):.2f}")
             create_window.destroy()
             refresh_account_info()
         else:
@@ -114,7 +160,12 @@ def get_account_info():
     
     if response.status_code in [200, 201]:
         data = response.json()
-        current_account = data['account']
+        if "success" in data and data["success"] and "data" in data:
+            current_account = data['data']
+        elif 'account' in data:
+            current_account = data['account']
+        else:
+            current_account = data
         return current_account
     else:
         current_account = None
@@ -156,7 +207,15 @@ def deposit():
         
         if response.status_code in [200, 201]:
             data = response.json()
-            messagebox.showinfo("Success", f"Deposited ${amount:.2f}\nNew Balance: ${data['new_balance']:.2f}")
+            if "success" in data and data["success"] and "data" in data:
+                new_balance = data['data']['new_balance']
+                messagebox.showinfo("Success", f"Deposited ${amount:.2f}\nNew Balance: ${new_balance:.2f}")
+            elif 'data' in data:
+                new_balance = data['data']['new_balance']
+                messagebox.showinfo("Success", f"Deposited ${amount:.2f}\nNew Balance: ${new_balance:.2f}")
+            else:
+                new_balance = data.get('new_balance', amount)
+                messagebox.showinfo("Success", f"Deposited ${amount:.2f}\nNew Balance: ${new_balance:.2f}")
             deposit_window.destroy()
             refresh_account_info()
         else:
@@ -194,7 +253,15 @@ def withdraw():
         
         if response.status_code in [200, 201]:
             data = response.json()
-            messagebox.showinfo("Success", f"Withdrew ${amount:.2f}\nNew Balance: ${data['new_balance']:.2f}")
+            if "success" in data and data["success"] and "data" in data:
+                new_balance = data['data']['new_balance']
+                messagebox.showinfo("Success", f"Withdrew ${amount:.2f}\nNew Balance: ${new_balance:.2f}")
+            elif 'data' in data:
+                new_balance = data['data']['new_balance']
+                messagebox.showinfo("Success", f"Withdrew ${amount:.2f}\nNew Balance: ${new_balance:.2f}")
+            else:
+                new_balance = data.get('new_balance', amount)
+                messagebox.showinfo("Success", f"Withdrew ${amount:.2f}\nNew Balance: ${new_balance:.2f}")
             withdraw_window.destroy()
             refresh_account_info()
         else:
@@ -237,7 +304,15 @@ def transfer():
         
         if response.status_code in [200, 201]:
             data = response.json()
-            messagebox.showinfo("Success", f"Transferred ${amount:.2f} to account {to_account}\nNew Balance: ${data['new_balance']:.2f}")
+            if "success" in data and data["success"] and "data" in data:
+                new_balance = data['data']['new_balance']
+                messagebox.showinfo("Success", f"Transferred ${amount:.2f} to account {to_account}\nNew Balance: ${new_balance:.2f}")
+            elif 'data' in data:
+                new_balance = data['data']['new_balance']
+                messagebox.showinfo("Success", f"Transferred ${amount:.2f} to account {to_account}\nNew Balance: ${new_balance:.2f}")
+            else:
+                new_balance = data.get('new_balance', amount)
+                messagebox.showinfo("Success", f"Transferred ${amount:.2f} to account {to_account}\nNew Balance: ${new_balance:.2f}")
             transfer_window.destroy()
             refresh_account_info()
         else:

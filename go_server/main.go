@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -65,11 +64,8 @@ var users map[string]string
 var accounts map[string]Account
 
 func init() {
-	// Initialize users map
 	users = make(map[string]string)
 	loadUsers()
-
-	// Initialize accounts map
 	accounts = make(map[string]Account)
 	loadAccounts()
 }
@@ -179,7 +175,7 @@ func generateAccountNumber() string {
 		if _, exists := accounts[accountNumber]; !exists {
 			return accountNumber
 		}
-		time.Sleep(1 * time.Nanosecond) // Ensure different timestamp
+		time.Sleep(1 * time.Nanosecond)
 	}
 }
 
@@ -203,7 +199,6 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Store username in request context for use in handlers
 		r.Header.Set("X-Username", claims["username"].(string))
 		next(w, r)
 	}
@@ -281,14 +276,13 @@ func protectedHandler(w http.ResponseWriter, r *http.Request) {
 
 func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.Header.Get("X-Username")
-	
+
 	var accountData AccountCreate
 	if err := json.NewDecoder(r.Body).Decode(&accountData); err != nil {
 		http.Error(w, `{"success": false, "message": "Invalid JSON"}`, http.StatusBadRequest)
 		return
 	}
 
-	// Check if user already has an active account
 	for _, account := range accounts {
 		if account.Username == username && account.IsActive {
 			http.Error(w, `{"success": false, "message": "User already has an active account"}`, http.StatusBadRequest)
@@ -330,8 +324,8 @@ func getMyAccountHandler(w http.ResponseWriter, r *http.Request) {
 				Success: true,
 				Account: &Account{
 					AccountNumber: account.AccountNumber,
-					Balance:      account.Balance,
-					CreatedAt:    account.CreatedAt,
+					Balance:       account.Balance,
+					CreatedAt:     account.CreatedAt,
 				},
 			}
 
@@ -437,7 +431,6 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Find sender account
 	var senderAccount Account
 	var senderAccountNumber string
 	found := false
@@ -456,7 +449,6 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check recipient account
 	recipientAccount, exists := accounts[transferData.ToAccountNumber]
 	if !exists {
 		http.Error(w, `{"success": false, "message": "Recipient account not found"}`, http.StatusNotFound)
@@ -473,7 +465,6 @@ func transferHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Perform transfer
 	senderAccount.Balance -= transferData.Amount
 	recipientAccount.Balance += transferData.Amount
 
@@ -524,11 +515,9 @@ func closeAccountHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 
-	// Public endpoints
 	r.HandleFunc("/register", registerHandler).Methods("POST")
 	r.HandleFunc("/login", loginHandler).Methods("POST")
 
-	// Protected endpoints
 	r.HandleFunc("/protected", authMiddleware(protectedHandler)).Methods("GET")
 	r.HandleFunc("/accounts/create", authMiddleware(createAccountHandler)).Methods("POST")
 	r.HandleFunc("/accounts/my-account", authMiddleware(getMyAccountHandler)).Methods("GET")

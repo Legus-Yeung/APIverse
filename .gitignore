@@ -2,3 +2,5 @@ venv/
 users.json
 accounts.json
 node_modules/
+go.mod
+go.sum
